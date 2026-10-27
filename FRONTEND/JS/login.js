@@ -9,6 +9,25 @@ passwordToggle.addEventListener("click", () => {
   passwordToggle.setAttribute("aria-label", nowShowing ? "Hide password" : "Show password");
 });
 
+// Already signed in to ePULSE / MRCS / SSMS / IPMCS on this server (shared eil_sso cookie)?
+// Then open SIMS straight away; otherwise the form below is used.
+(async function trySingleSignOn() {
+  try {
+    const response = await fetch("/api/auth/sso", { method: "POST", credentials: "same-origin" });
+    const payload = await response.json().catch(() => null);
+    if (response.ok && payload && payload.success) {
+      simsSetAuth(payload.data.token, payload.data.user);
+      window.location.href = "JOB-FORM.HTML";
+    } else if (response.status === 403 && payload && payload.message) {
+      const errorMessage = document.getElementById("error-message");
+      errorMessage.textContent = payload.message;
+      errorMessage.hidden = false;
+    }
+  } catch (error) {
+    /* not signed in elsewhere — use the form */
+  }
+})();
+
 document.getElementById("login-form").addEventListener("submit", async function (event) {
   event.preventDefault();
 
@@ -30,6 +49,7 @@ document.getElementById("login-form").addEventListener("submit", async function 
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({ username, password }),
     });
     const payload = await response.json().catch(() => null);

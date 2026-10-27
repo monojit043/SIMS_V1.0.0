@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.use(requireAuth);
 
-router.post("/import-from-pims", pidController.importFromPims);
+router.post("/import-from-epulse", pidController.importFromEpulse);
 router.post("/", pidUpload.single("file"), pidController.create);
 router.get("/", pidController.list);
 router.get("/:id", pidController.getById);

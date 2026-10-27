@@ -1,8 +1,4 @@
-// Loads .env by default, or a different file via `node server.js --env-file=.env.office`
-// (see package.json's start:office/dev:office scripts) — lets us switch to the real office
-// databases for testing without touching the local-dev .env at all.
-const envFileArg = process.argv.find((arg) => arg.startsWith("--env-file="));
-require("dotenv").config({ path: envFileArg ? envFileArg.split("=")[1] : ".env" });
+require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 
 const path = require("path");
 const express = require("express");
@@ -64,8 +60,8 @@ function start() {
 
   connectExternalDbs().catch((error) => {
     console.error(
-      `Could not reach MASTER_EMPLOYEE_DB / PIMS_SQL (${error.message}). Login and the Job/Unit ` +
-        "dropdowns will fail until those databases are reachable."
+      `Could not reach ePULSE / IPMCS (${error.message}). Login, the Job/Unit dropdowns, the ` +
+        "P&ID index and the line list need them — check EPULSE_DB_* / IPMCS_DB_* in .env."
     );
   });
 }

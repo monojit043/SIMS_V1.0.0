@@ -75,32 +75,13 @@
           </div>
         </section>
 
-        <section class="form-section" id="admins-section" hidden>
-          <h2 class="section-title">Manage Admins</h2>
-          <p class="pid-hint">Admins can mark 3D admin tasks as done and manage other admins.</p>
-          <div class="section-grid cols-2" style="max-width: 420px;">
-            <div class="field">
-              <label for="new-admin-id">Employee ID</label>
-              <input type="text" id="new-admin-id" placeholder="e.g. A725">
-            </div>
-            <div class="field" style="align-self: end;">
-              <button type="button" class="secondary-button" id="add-admin-button">Add Admin</button>
-            </div>
-          </div>
-          <p class="error-message" id="admin-error" hidden></p>
-          <div class="table-scroll">
-            <table class="data-table" id="admins-table">
-              <thead>
-                <tr>
-                  <th>Employee ID</th>
-                  <th>Added By</th>
-                  <th>Added At</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="admins-table-body"></tbody>
-            </table>
-          </div>
+        <section class="form-section" id="admins-section">
+          <h2 class="section-title">Who are admins</h2>
+          <p class="pid-hint">
+            SIMS admins are the <strong>Leads (GL / SGL in PIMS)</strong> and <strong>Material Leads</strong> of the IPMCS
+            team of any job / unit. They can delegate 3D admin tasks, mark any task done and backfill missing tasks.
+            To change who is admin, change the team in IPMCS (Team page) — SIMS keeps no separate list.
+          </p>
         </section>
       </main>
     </div>

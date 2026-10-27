@@ -5,12 +5,6 @@ const tasksTable = document.getElementById("tasks-table");
 const tasksTableBody = document.getElementById("tasks-table-body");
 const backfillButton = document.getElementById("backfill-button");
 
-const adminsSection = document.getElementById("admins-section");
-const adminError = document.getElementById("admin-error");
-const newAdminIdInput = document.getElementById("new-admin-id");
-const addAdminButton = document.getElementById("add-admin-button");
-const adminsTableBody = document.getElementById("admins-table-body");
-
 const currentUser = typeof simsGetAuthUser === "function" ? simsGetAuthUser() : null;
 const isCurrentUserAdmin = !!(currentUser && currentUser.isAdmin);
 
@@ -158,69 +152,10 @@ async function runBackfill() {
   }
 }
 
-async function refreshAdmins() {
-  try {
-    const rows = await apiFetch("/api/admins");
-    adminsTableBody.innerHTML = "";
-    rows.forEach((row) => {
-      const tr = document.createElement("tr");
-      [row.employeeId, row.addedBy, formatDateTime(row.createdAt)].forEach((value) => {
-        const td = document.createElement("td");
-        td.textContent = value || "";
-        tr.appendChild(td);
-      });
-
-      const actionTd = document.createElement("td");
-      const removeButton = document.createElement("button");
-      removeButton.type = "button";
-      removeButton.className = "secondary-button";
-      removeButton.textContent = "Remove";
-      removeButton.addEventListener("click", () => removeAdmin(row.employeeId));
-      actionTd.appendChild(removeButton);
-      tr.appendChild(actionTd);
-
-      adminsTableBody.appendChild(tr);
-    });
-  } catch (error) {
-    adminError.textContent = "Could not load admins: " + error.message;
-    adminError.hidden = false;
-  }
-}
-
-async function removeAdmin(employeeId) {
-  if (!confirm(`Remove admin access for "${employeeId}"?`)) return;
-  try {
-    await apiFetch(`/api/admins/${encodeURIComponent(employeeId)}`, { method: "DELETE" });
-    refreshAdmins();
-  } catch (error) {
-    alert("Could not remove this admin: " + error.message);
-  }
-}
-
+// Admins = the IPMCS Leads (GL / SGL) and Material Leads (isAdmin comes from the server)
 if (isCurrentUserAdmin) {
-  adminsSection.hidden = false;
   backfillButton.hidden = false;
   backfillButton.addEventListener("click", runBackfill);
-
-  addAdminButton.addEventListener("click", async () => {
-    const employeeId = newAdminIdInput.value.trim();
-    adminError.hidden = true;
-    if (!employeeId) {
-      adminError.textContent = "Employee ID is required.";
-      adminError.hidden = false;
-      return;
-    }
-    try {
-      await apiFetch("/api/admins", { method: "POST", body: JSON.stringify({ employeeId }) });
-      newAdminIdInput.value = "";
-      refreshAdmins();
-    } catch (error) {
-      adminError.textContent = "Could not add this admin: " + error.message;
-      adminError.hidden = false;
-    }
-  });
-
-  refreshAdmins();
 }
 
 statusFilter.addEventListener("change", refreshTasks);

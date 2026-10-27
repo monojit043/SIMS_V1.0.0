@@ -1,29 +1,19 @@
-require("dotenv").config();
+require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
 
 const { sequelize, connectDB } = require("../config/db");
-const { employeeSequelize, pimsSequelize, connectExternalDbs } = require("../config/externalDb");
-const EmployeeDetails = require("../models/EmployeeDetails");
+const { epulsePool, ipmcsPool, connectExternalDbs } = require("../config/externalDb");
 
-// Login now comes from MASTER_EMPLOYEE_DB.employee_details — there's no local account to seed
-// anymore. This just verifies all three databases are reachable and prints a real employee_id
-// you can log in with (passwords in that table are employee_id + "EIL", e.g. A365 -> A365EIL).
-async function seed() {
+// Nothing to seed: logins come from PC-2 (through ePULSE) and access from the IPMCS team.
+// This checks that SIMS' own DB, ePULSE and IPMCS are reachable (and creates SIMS' tables).
+async function check() {
   await connectDB();
   await connectExternalDbs();
-
-  const sample = await EmployeeDetails.findOne({ order: [["employee_id", "ASC"]] });
-  if (sample) {
-    console.log(`Sample login: username "${sample.employee_id}" (see employee_details.password for the password).`);
-  } else {
-    console.log("employee_details has no rows — nothing to log in with yet.");
-  }
-
   await sequelize.close();
-  await employeeSequelize.close();
-  await pimsSequelize.close();
+  await Promise.all([epulsePool.end(), ipmcsPool.end()]);
+  console.log("All databases reachable.");
 }
 
-seed().catch((error) => {
-  console.error("Seed check failed:", error);
+check().catch((error) => {
+  console.error("Database check failed:", error.message);
   process.exit(1);
 });

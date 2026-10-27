@@ -1,47 +1,50 @@
-const { Sequelize } = require("sequelize");
+const { Pool } = require("pg");
 
-// Two read-only external databases — normally on the same Postgres server as the main SIMS DB
-// (falls back to the PG* vars below), but EXTERNAL_PG* lets them point at a different server
-// (e.g. the real office PIMS/Employee DB host) while SIMS' own DB connection stays untouched.
-//  - MASTER_EMPLOYEE_DB: employee_details is now the single source of truth for login.
-//  - PIMS_SQL: user_role_assignments drives each user's Job Number / Unit Number options.
-// We never sync() against these — we don't own their schema, only read from it.
+// SIMS reads two other databases LIVE and READ-ONLY — nothing is copied or synced:
+//  - ePULSE (PC-1): logins (pc2_emp.users — ePULSE's live link to PC-2's eil_employees),
+//    jobs / units / GL / SGL (ePULSE's live PC-2 views: projects, project_units,
+//    user_role_assignments, project_sgls), the line list (line_list) and the P&ID
+//    module (pid_master_index, pid_documents).
+//  - IPMCS (PC-1): the IPMCS team of each job + unit (ipmcs_user_assignments: ML / JE).
+//    Whoever is on the IPMCS team of a job + unit can use SIMS there — SIMS keeps no
+//    user list of its own.
+// SIMS' own data (P&ID copies + highlights, special item tags, reports, library tasks)
+// stays in its own database (config/db.js).
 
-const EXTERNAL_PGHOST = process.env.EXTERNAL_PGHOST || process.env.PGHOST || "127.0.0.1";
-const EXTERNAL_PGPORT = process.env.EXTERNAL_PGPORT || process.env.PGPORT || 5432;
-const EXTERNAL_PGUSER = process.env.EXTERNAL_PGUSER || process.env.PGUSER || "postgres";
-const EXTERNAL_PGPASSWORD = process.env.EXTERNAL_PGPASSWORD || process.env.PGPASSWORD || "postgres";
-
-const employeeSequelize = new Sequelize(
-  process.env.MASTER_EMPLOYEE_DB_NAME || "MASTER_EMPLOYEE_DB",
-  EXTERNAL_PGUSER,
-  EXTERNAL_PGPASSWORD,
-  {
-    host: EXTERNAL_PGHOST,
-    port: EXTERNAL_PGPORT,
-    dialect: "postgres",
-    logging: false,
-  }
-);
-
-const pimsSequelize = new Sequelize(
-  process.env.PIMS_DB_NAME || "PIMS_SQL",
-  EXTERNAL_PGUSER,
-  EXTERNAL_PGPASSWORD,
-  {
-    host: EXTERNAL_PGHOST,
-    port: EXTERNAL_PGPORT,
-    dialect: "postgres",
-    logging: false,
-  }
-);
-
-async function connectExternalDbs() {
-  await employeeSequelize.authenticate();
-  console.log(`MASTER_EMPLOYEE_DB connected: ${employeeSequelize.config.database}`);
-
-  await pimsSequelize.authenticate();
-  console.log(`PIMS DB connected: ${pimsSequelize.config.database}`);
+function readOnlyPool(prefix, defaults) {
+  return new Pool({
+    host: process.env[`${prefix}_HOST`] || "localhost",
+    port: Number(process.env[`${prefix}_PORT`]) || 5432,
+    database: process.env[`${prefix}_NAME`] || defaults.database,
+    user: process.env[`${prefix}_USER`] || "postgres",
+    password: process.env[`${prefix}_PASSWORD`],
+    options: "-c default_transaction_read_only=on",
+    max: 5,
+  });
 }
 
-module.exports = { employeeSequelize, pimsSequelize, connectExternalDbs };
+const epulsePool = readOnlyPool("EPULSE_DB", { database: "ePULSE_DEV_v1.0.0" });
+const ipmcsPool = readOnlyPool("IPMCS_DB", { database: "IPMCS_UTILITY_1.0" });
+
+for (const p of [epulsePool, ipmcsPool]) {
+  p.on("error", (err) => console.error("Unexpected error on an idle external DB client:", err.message));
+}
+
+const queryEpulse = (text, params) => epulsePool.query(text, params);
+const queryIpmcs = (text, params) => ipmcsPool.query(text, params);
+
+async function connectExternalDbs() {
+  const { rows: [e] } = await queryEpulse("SELECT current_database() AS db, (SELECT count(*) FROM line_list)::int AS lines");
+  console.log(`ePULSE connected: ${e.db} (line list: ${e.lines} lines)`);
+  const { rows: [i] } = await queryIpmcs("SELECT current_database() AS db, (SELECT count(*) FROM ipmcs_user_assignments)::int AS team");
+  console.log(`IPMCS connected: ${i.db} (team assignments: ${i.team})`);
+  // Logins and GL / SGL go through ePULSE's live link to PC-2 — reported separately
+  try {
+    const { rows: [u] } = await queryEpulse("SELECT count(*)::int AS n FROM pc2_emp.users");
+    console.log(`PC-2 (via ePULSE) reachable: ${u.n} employees`);
+  } catch (error) {
+    console.error(`PC-2 not reachable through ePULSE (${error.message}) — nobody can log in until PC-2 is back.`);
+  }
+}
+
+module.exports = { epulsePool, ipmcsPool, queryEpulse, queryIpmcs, connectExternalDbs };

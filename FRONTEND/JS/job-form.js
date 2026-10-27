@@ -45,7 +45,8 @@ async function refreshPidMasterIndex() {
     pidMasterIndexTableBody.innerHTML = "";
     rows.forEach((row) => {
       const tr = document.createElement("tr");
-      [row.pidName, row.zone, row.status, row.createdBy, formatPidMasterIndexDate(row.createdAt)].forEach(
+      const status = row.hasPdf ? `${row.status} · Rev ${row.revLabel || "—"}` : `${row.status} · no PDF in ePULSE yet`;
+      [row.pidName, row.zone, status, row.createdBy, formatPidMasterIndexDate(row.createdAt)].forEach(
         (value) => {
           const td = document.createElement("td");
           td.textContent = value || "";
@@ -58,6 +59,8 @@ async function refreshPidMasterIndex() {
       openButton.type = "button";
       openButton.className = "secondary-button";
       openButton.textContent = "Open for Highlighting";
+      openButton.disabled = !row.hasPdf;
+      if (!row.hasPdf) openButton.title = "Upload this P&ID's PDF in ePULSE first";
       openButton.addEventListener("click", () => openPidForHighlighting(row.id, openButton));
       actionTd.appendChild(openButton);
       tr.appendChild(actionTd);
@@ -85,7 +88,7 @@ async function openPidForHighlighting(masterIndexId, buttonEl) {
   buttonEl.textContent = "Opening…";
 
   try {
-    const response = await fetch("/api/pid/import-from-pims", {
+    const response = await fetch("/api/pid/import-from-epulse", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ masterIndexId }),

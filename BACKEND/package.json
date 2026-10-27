@@ -5,12 +5,14 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "start:office": "node server.js --env-file=.env.office",
     "dev": "nodemon server.js",
-    "dev:office": "nodemon server.js --env-file=.env.office",
-    "seed": "node utils/seed.js"
+    "check-db": "node utils/seed.js"
   },
-  "keywords": ["sims", "express", "postgresql"],
+  "keywords": [
+    "sims",
+    "express",
+    "postgresql"
+  ],
   "license": "UNLICENSED",
   "dependencies": {
     "bcryptjs": "^2.4.3",

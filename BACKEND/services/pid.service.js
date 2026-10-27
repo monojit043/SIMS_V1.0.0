@@ -1,33 +1,21 @@
 const fs = require("fs");
 const path = require("path");
+const { Op } = require("sequelize");
 const PidDocument = require("../models/PidDocument");
-const PidMasterIndex = require("../models/PidMasterIndex");
-const PimsPidDocument = require("../models/PimsPidDocument");
+const { queryEpulse } = require("../config/externalDb");
 const ApiError = require("../utils/ApiError");
 
-const PIMS_UPLOADS_DIR = process.env.PIMS_UPLOADS_DIR || "D:\\PIMS_SQL\\backend\\uploads";
+// ePULSE's uploads folder — its pid_documents.file_path ("B862/101/PID/…pdf") is relative to it
+const EPULSE_UPLOADS_ROOT = process.env.EPULSE_UPLOADS_ROOT;
 const PID_UPLOAD_DIR = path.join(__dirname, "..", "uploads", "pid");
 
-// PIMS stores file_path relative to its own uploads dir, but at least one file on disk was
-// found saved with a doubled extension (".pdf.pdf") that the DB row doesn't reflect. Try the
-// exact path first, then the doubled-extension variant, then fall back to scanning the
-// directory for a file whose name starts with the recorded file_name.
-function resolvePimsFilePath(relativeFilePath) {
-  const exact = path.join(PIMS_UPLOADS_DIR, relativeFilePath);
-  if (fs.existsSync(exact)) return exact;
-
-  const ext = path.extname(relativeFilePath);
-  const doubled = exact + ext;
-  if (ext && fs.existsSync(doubled)) return doubled;
-
-  const dir = path.dirname(exact);
-  const baseName = path.basename(relativeFilePath);
-  if (fs.existsSync(dir)) {
-    const match = fs.readdirSync(dir).find((entry) => entry.startsWith(baseName));
-    if (match) return path.join(dir, match);
-  }
-
-  return null;
+// Full path of an ePULSE upload, or null if missing / outside the uploads folder
+function resolveEpulseFilePath(relativeFilePath) {
+  if (!EPULSE_UPLOADS_ROOT) throw new ApiError(500, "EPULSE_UPLOADS_ROOT is not set in .env");
+  const base = path.resolve(EPULSE_UPLOADS_ROOT);
+  const full = path.resolve(base, relativeFilePath || "");
+  if (!full.startsWith(base + path.sep)) return null;
+  return fs.existsSync(full) ? full : null;
 }
 
 function parseHighlights(raw) {
@@ -64,14 +52,21 @@ async function create({ name, jobNumber, unitNumber, highlights, file, userId })
   });
 }
 
+// filters.units: [{ jobNo, unitNo }] the user may see (their IPMCS teams)
 async function list(filters) {
   const where = {};
   if (filters.jobNumber) where.jobNumber = filters.jobNumber;
   if (filters.unitNumber) where.unitNumber = filters.unitNumber;
+  if (filters.units) {
+    where[Op.or] = [
+      ...filters.units.map((u) => ({ jobNumber: u.jobNo, unitNumber: u.unitNo })),
+      { jobNumber: "", unitNumber: "" },   // a P&ID uploaded locally with no job / unit
+    ];
+  }
 
   return PidDocument.findAll({
     where,
-    attributes: ["id", "name", "jobNumber", "unitNumber", "sourceType", "createdAt", "updatedAt"],
+    attributes: ["id", "name", "jobNumber", "unitNumber", "sourceType", "revLabel", "createdAt", "updatedAt"],
     order: [["updatedAt", "DESC"]],
   });
 }
@@ -113,65 +108,58 @@ async function remove(id) {
   await doc.destroy();
 }
 
-async function importFromPims(masterIndexId, userId) {
-  const masterIndex = await PidMasterIndex.findByPk(masterIndexId);
+// "Open for Highlighting" on a P&ID of ePULSE's index: copies the CURRENT revision's PDF into
+// SIMS (one row per revision — older revisions' copies and highlights are never touched).
+async function importFromEpulse(masterIndexId) {
+  const { rows: [masterIndex] } = await queryEpulse(
+    `SELECT id, pid_name, job_no, unit_no FROM pid_master_index WHERE id = $1 AND status = 'active'`,
+    [Number(masterIndexId) || 0]
+  );
   if (!masterIndex) {
-    throw new ApiError(404, "P&ID master index entry not found");
+    throw new ApiError(404, "P&ID not found in ePULSE's P&ID index");
   }
-
-  const pimsDoc = await PimsPidDocument.findOne({
-    where: { master_index_id: masterIndexId, status: "current" },
-    order: [["rev_sort_key", "DESC"]],
-  }) || (await PimsPidDocument.findOne({
-    where: { master_index_id: masterIndexId },
-    order: [["rev_sort_key", "DESC"]],
-  }));
-
-  if (!pimsDoc) {
-    throw new ApiError(404, "No uploaded file found in PIMS for this P&ID");
+  const { rows: [doc] } = await queryEpulse(
+    `SELECT id, file_name, file_path, file_hash, rev_label, rev_sort_key FROM pid_documents
+     WHERE master_index_id = $1 AND status = 'current'`,
+    [masterIndex.id]
+  );
+  if (!doc) {
+    throw new ApiError(404, `No PDF uploaded in ePULSE yet for ${masterIndex.pid_name}`);
   }
+  return { masterIndex, doc };
+}
 
-  // A row already exists for exactly this PIMS revision (same master index, same rev, same file
-  // content) — reuse it as-is, including whatever highlights were drawn on it.
-  const existing = await PidDocument.findOne({
-    where: {
-      pimsMasterIndexId: masterIndexId,
-      pimsRevSortKey: pimsDoc.rev_sort_key,
-      pimsFileHash: pimsDoc.file_hash,
-    },
-  });
+async function copyFromEpulse({ masterIndex, doc }, userId) {
+  // A copy of exactly this ePULSE revision already exists — reuse it, with its highlights.
+  const existing = await PidDocument.findOne({ where: { epulseMasterIndexId: masterIndex.id, epulseDocumentId: doc.id } });
   if (existing) return existing;
 
-  // No row for this revision yet — either the very first import, or PIMS has a newer revision
-  // than whatever we imported before. Either way, copy the file fresh and create a NEW row.
-  // Older revisions' rows and files are left completely untouched (their highlights stay valid
-  // and browsable) rather than being overwritten or deleted.
-  const sourcePath = resolvePimsFilePath(pimsDoc.file_path);
+  const sourcePath = resolveEpulseFilePath(doc.file_path);
   if (!sourcePath) {
-    throw new ApiError(404, "PIMS P&ID file could not be located on disk");
+    throw new ApiError(404, "The P&ID file could not be found in ePULSE's uploads folder");
   }
 
   fs.mkdirSync(PID_UPLOAD_DIR, { recursive: true });
-  const storedFileName = `${Date.now()}_pims_${pimsDoc.file_name}`;
+  const storedFileName = `${Date.now()}_epulse_${doc.file_name}`;
   const destPath = path.join(PID_UPLOAD_DIR, storedFileName);
   fs.copyFileSync(sourcePath, destPath);
-
-  const sourceType = path.extname(pimsDoc.file_name).toLowerCase() === ".pdf" ? "pdf" : "image";
 
   return PidDocument.create({
     name: masterIndex.pid_name,
     jobNumber: masterIndex.job_no || "",
     unitNumber: masterIndex.unit_no || "",
     highlights: [],
-    sourceType,
-    originalName: pimsDoc.file_name,
+    sourceType: path.extname(doc.file_name).toLowerCase() === ".pdf" ? "pdf" : "image",
+    originalName: doc.file_name,
     storedFileName,
     filePath: destPath,
     updatedBy: userId,
-    pimsMasterIndexId: masterIndexId,
-    pimsRevSortKey: pimsDoc.rev_sort_key,
-    pimsFileHash: pimsDoc.file_hash,
+    epulseMasterIndexId: masterIndex.id,
+    epulseDocumentId: doc.id,
+    revLabel: doc.rev_label,
+    revSortKey: doc.rev_sort_key,
+    fileHash: doc.file_hash,
   });
 }
 
-module.exports = { create, list, getById, update, remove, importFromPims };
+module.exports = { create, list, getById, update, remove, importFromEpulse, copyFromEpulse };

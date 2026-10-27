@@ -16,8 +16,8 @@ const PID_DIALOG_CATEGORY_1_ITEMS = [
 ];
 const PID_DIALOG_CATEGORY_2_ITEMS = ["Utility Hose", "CSTA"];
 // Static fallback used only when a document has no Job Number/Unit Number (e.g. a locally
-// uploaded P&ID with no PIMS link). Once a job/unit is known this is replaced with real line
-// numbers from PIMS_SQL.linelist_lines — see loadPidLineNumberOptionsForDocument().
+// uploaded P&ID with no ePULSE link). Once a job/unit is known this is replaced with real line
+// numbers from ePULSE's line list — see loadPidLineNumberOptionsForDocument().
 let PID_DIALOG_LINE_INFO_LOOKUP = {
   "P-101-12345": { lineSize: "6\"", pipingSpec: "A1A", lineTemp: "150 °C", rating: "150#" },
   "P-111-54321": { lineSize: "4\"", pipingSpec: "B2C", lineTemp: "90 °C", rating: "300#" },
@@ -436,10 +436,10 @@ function updatePidDialogLineInformation() {
 
 pidDetailInputs.lineNumber.addEventListener("change", updatePidDialogLineInformation);
 
-// Replaces the Line Number dropdown's options with real lines from PIMS_SQL.linelist_lines for
+// Replaces the Line Number dropdown's options with real lines from ePULSE's line list for
 // the current document's Job Number/Unit Number (set on pidData when loaded via loadPidFromBackend
 // — see there). Falls back to leaving the static PID_DIALOG_LINE_INFO_LOOKUP options in place when
-// the document has no job/unit context (e.g. a locally uploaded P&ID with no PIMS link).
+// the document has no job/unit context (e.g. a locally uploaded P&ID with no ePULSE link).
 let pidLineNumberOptionsToken = 0;
 async function loadPidLineNumberOptionsForDocument() {
   const jobNumber = pidData.jobNumber;

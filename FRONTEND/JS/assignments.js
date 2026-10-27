@@ -1,7 +1,7 @@
 let pidAssignmentsPromise = null;
 
-// Job Number / Unit Number options for the logged-in user, sourced from PIMS_SQL via
-// /api/lookups/my-assignments (replaces the old hard-coded dropdown lists).
+// Job Number / Unit Number options for the logged-in user — the jobs + units where they are on
+// the IPMCS team (GL / SGL from PIMS, ML / JE from IPMCS) — via /api/lookups/my-assignments.
 function fetchMyAssignments() {
   if (!pidAssignmentsPromise) {
     const token = typeof simsGetAuthToken === "function" ? simsGetAuthToken() : null;

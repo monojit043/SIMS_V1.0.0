@@ -1,9 +1,4 @@
-const { Op } = require("sequelize");
-const UserRoleAssignment = require("../models/UserRoleAssignment");
-const Project = require("../models/Project");
-const PidMasterIndex = require("../models/PidMasterIndex");
-const LinelistUpload = require("../models/LinelistUpload");
-const LinelistLine = require("../models/LinelistLine");
+const { queryEpulse } = require("../config/externalDb");
 
 // Static reference data mirroring the dropdown options hard-coded in the
 // frontend (JOB-FORM.HTML / job-form.js). Centralized here so the frontend
@@ -45,49 +40,39 @@ function getAll() {
   };
 }
 
-// Job Number / Unit Number options for the logged-in user only, sourced from
-// PIMS_SQL.user_role_assignments — replaces the old hard-coded dropdown lists.
-async function getMyAssignments(employeeId) {
-  const rows = await UserRoleAssignment.findAll({
-    where: { user_id: employeeId },
-    attributes: ["project_id", "unit_no"],
+// Job Number / Unit Number options for the logged-in user — the jobs + units where they are
+// on the IPMCS team (GL / SGL from PC-2, ML / JE from IPMCS), read live: see access.service.js.
+// Same shape as before: [{ projectId, projectName, units: [unitNo] }]
+function groupAccess(accessRows) {
+  const byJob = new Map();
+  accessRows.forEach((a) => {
+    if (!byJob.has(a.jobNo)) byJob.set(a.jobNo, { projectId: a.jobNo, projectName: a.jobName || "", units: [] });
+    byJob.get(a.jobNo).units.push(a.unitNo);
   });
-
-  const byProject = new Map();
-  rows.forEach((row) => {
-    if (!row.project_id || !row.unit_no) return;
-    if (!byProject.has(row.project_id)) byProject.set(row.project_id, new Set());
-    byProject.get(row.project_id).add(row.unit_no);
-  });
-
-  const projectIds = Array.from(byProject.keys());
-  const projects = projectIds.length ? await Project.findAll({ where: { id: projectIds } }) : [];
-  const nameById = new Map(projects.map((p) => [p.id, p.name]));
-
-  return Array.from(byProject.entries())
-    .map(([projectId, units]) => ({
-      projectId,
-      projectName: nameById.get(projectId) || "",
-      units: Array.from(units).sort(),
-    }))
-    .sort((a, b) => a.projectId.localeCompare(b.projectId));
+  return [...byJob.values()].map((j) => ({ ...j, units: j.units.sort() }));
 }
 
-// Every P&ID registered for a given Job Number + Unit Number, sourced from
-// PIMS_SQL.pid_master_index — shown on the Job Form once both are selected.
+// Every active P&ID of the job + unit from ePULSE's P&ID module (index + current revision),
+// shown on the Job Form; "Open for Highlighting" copies the current revision into SIMS.
 async function getPidMasterIndex(jobNo, unitNo) {
   if (!jobNo || !unitNo) return [];
-
-  const rows = await PidMasterIndex.findAll({
-    where: { job_no: jobNo, unit_no: unitNo },
-    order: [["pid_name", "ASC"]],
-  });
-
+  const { rows } = await queryEpulse(
+    `SELECT mi.id, mi.pid_name, mi.zone, mi.status, mi.created_by, mi.created_at,
+            mi.retired_by, mi.retired_at, mi.retire_reason,
+            d.id AS document_id, d.rev_label
+     FROM pid_master_index mi
+     LEFT JOIN pid_documents d ON d.master_index_id = mi.id AND d.status = 'current'
+     WHERE mi.job_no = $1 AND mi.unit_no = $2 AND mi.status = 'active'
+     ORDER BY mi.pid_name`,
+    [jobNo, unitNo]
+  );
   return rows.map((row) => ({
     id: row.id,
     pidName: row.pid_name,
     zone: row.zone,
     status: row.status,
+    revLabel: row.rev_label,
+    hasPdf: !!row.document_id,
     createdBy: row.created_by,
     createdAt: row.created_at,
     retiredBy: row.retired_by,
@@ -96,33 +81,21 @@ async function getPidMasterIndex(jobNo, unitNo) {
   }));
 }
 
-// Line numbers for the P&ID dialog's Line Number dropdown, sourced from PIMS_SQL.linelist_lines
-// — filtered by Job Number (job_no only lives on linelist_uploads, joined via upload_id) and
-// Unit Number (matched with a prefix search since unit_no is stored inconsistently, e.g. "111"
-// vs "111 (PDH Unit)").
+// Line numbers for the P&ID dialog's Line Number dropdown, from ePULSE's line list (line_list),
+// composed as service-unitNo-lineNo (e.g. "AI-101-04109"). The line list's unit_no reads e.g.
+// "101 (PDH Unit)", so match on parent_unit or the leading unit number.
 async function getLineNumbers(jobNo, unitNo) {
   if (!jobNo || !unitNo) return [];
-
-  const uploads = await LinelistUpload.findAll({
-    where: { job_no: jobNo, is_latest: true },
-    attributes: ["id"],
-  });
-  const uploadIds = uploads.map((upload) => upload.id);
-  if (!uploadIds.length) return [];
-
-  const lines = await LinelistLine.findAll({
-    where: {
-      upload_id: uploadIds,
-      unit_no: { [Op.iLike]: `${unitNo}%` },
-    },
-    order: [["line_no", "ASC"]],
-  });
+  const { rows: lines } = await queryEpulse(
+    `SELECT service, line_no, line_size, line_class, pid_no FROM line_list
+     WHERE project_id = $1 AND (parent_unit = $2 OR split_part(unit_no, ' ', 1) = $2)
+       AND coalesce(line_no, '') <> ''
+     ORDER BY line_no, service`,
+    [jobNo, unitNo]
+  );
 
   const byLineNo = new Map();
   lines.forEach((line) => {
-    if (!line.line_no) return;
-    // Composed as service-unitNo-lineNo (e.g. "AI-111-92215") using the clean requested unitNo
-    // rather than the raw unit_no column, which is stored inconsistently (e.g. "111 (PDH Unit)").
     const composedLineNo = [line.service, unitNo, line.line_no].filter(Boolean).join("-");
     if (byLineNo.has(composedLineNo)) return;
     byLineNo.set(composedLineNo, {
@@ -140,7 +113,7 @@ async function getLineNumbers(jobNo, unitNo) {
 module.exports = {
   getAll,
   getCategoryForItem,
-  getMyAssignments,
+  groupAccess,
   getPidMasterIndex,
   getLineNumbers,
   LINE_INFO_LOOKUP,

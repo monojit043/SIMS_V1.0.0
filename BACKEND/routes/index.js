@@ -6,7 +6,6 @@ const lookupsRoutes = require("./lookups.routes");
 const specialItemTagRoutes = require("./specialItemTag.routes");
 const licensorDocumentRoutes = require("./licensorDocument.routes");
 const st6ReportRoutes = require("./st6Report.routes");
-const adminRoutes = require("./admin.routes");
 const libraryTaskRoutes = require("./libraryTask.routes");
 
 const router = express.Router();
@@ -19,7 +18,6 @@ router.use("/lookups", lookupsRoutes);
 router.use("/special-item-tags", specialItemTagRoutes);
 router.use("/licensor-documents", licensorDocumentRoutes);
 router.use("/st6-reports", st6ReportRoutes);
-router.use("/admins", adminRoutes);
 router.use("/library-tasks", libraryTaskRoutes);
 
 module.exports = router;
