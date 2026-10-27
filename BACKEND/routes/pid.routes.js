@@ -8,7 +8,7 @@ const router = express.Router();
 router.use(requireAuth);
 
 router.post("/import-from-epulse", pidController.importFromEpulse);
-router.post("/", pidUpload.single("file"), pidController.create);
+router.post("/", pidController.create);   // refused: P&IDs come from ePULSE
 router.get("/", pidController.list);
 router.get("/:id", pidController.getById);
 router.put("/:id", pidUpload.single("file"), pidController.update);

@@ -1748,7 +1748,8 @@ async function restoreSavedPdf() {
   }
 }
 
-pidUploadInput.addEventListener("change", async () => {
+// The upload box was removed (P&IDs come only from ePULSE) — kept guarded for a later vendor-upload path
+if (pidUploadInput) pidUploadInput.addEventListener("change", async () => {
   const file = pidUploadInput.files[0];
   if (!file) return;
 
@@ -2050,12 +2051,9 @@ async function loadPidFromBackend(docId, targetPage, targetTag) {
     if (loaded) return;
   }
 
-  pidData = await loadPidData();
-  if (pidData.pdfDataUrl && pidPdfSupportAvailable) {
-    await restoreSavedPdf();
-  } else if (pidData.imageDataUrl) {
-    showPidImage(pidData.imageDataUrl);
-  }
+  // Only a P&ID opened from Special Items Collection (an ePULSE revision copied into SIMS) can
+  // be highlighted — no locally uploaded or browser-cached drawings.
+  document.getElementById("pid-no-doc").hidden = false;
 })();
 
 function showFloatingDialog(x, y) {

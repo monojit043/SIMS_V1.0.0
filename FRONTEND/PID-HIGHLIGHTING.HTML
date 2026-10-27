@@ -19,7 +19,6 @@
         <li><a href="UPLOAD-REPORT.HTML" class="sidebar-link">Upload ST6 Report</a></li>
         <li><a href="UPLOAD-LICENSOR-DOCUMENT.HTML" class="sidebar-link">Upload Licensor Document</a></li>
         <li><a href="ITEM-DETAILS.HTML" class="sidebar-link">Special Item Details</a></li>
-        <li><a href="PID-HIGHLIGHTING.HTML" class="sidebar-link active">P&amp;ID Highlighting</a></li>
         <li><a href="3D-ADMIN-TASKS.HTML" class="sidebar-link">3D Admin Tasks</a></li>
       </ul>
     </nav>
@@ -40,8 +39,13 @@
         <section class="form-section">
           <h2 class="section-title">P&amp;ID Markup</h2>
 
+          <!-- P&IDs come only from ePULSE: opened from Special Items Collection → "Open for Highlighting" -->
+          <p class="pid-hint" id="pid-no-doc" hidden>
+            No P&amp;ID open. Go to <a href="JOB-FORM.HTML">Special Items Collection</a>, choose the Job and Unit,
+            and click <strong>Open for Highlighting</strong> on a P&amp;ID — every highlight and special item is
+            then tied to that P&amp;ID's revision in ePULSE.
+          </p>
           <div class="pid-upload-row">
-            <input type="file" id="pid-upload" accept="image/*,application/pdf">
             <button type="button" id="pid-save-pid-button" class="primary-button" hidden>Save P&amp;ID</button>
             <span class="pid-save-status" id="pid-save-status" hidden></span>
             <span class="pid-cloud-status" id="pid-cloud-status" hidden></span>
