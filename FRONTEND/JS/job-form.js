@@ -5,6 +5,20 @@ loadJobUnitAssignments(jobNumberSelect, unitNumberSelect);
 const pidMasterIndexEmptyState = document.getElementById("pid-master-index-empty-state");
 const pidMasterIndexTable = document.getElementById("pid-master-index-table");
 const pidMasterIndexTableBody = document.getElementById("pid-master-index-table-body");
+const pidShowNoPdf = document.getElementById("pid-show-no-pdf");
+const pidNoPdfCount = document.getElementById("pid-no-pdf-count");
+const pidNoPdfToggleWrap = document.getElementById("pid-no-pdf-toggle");
+
+// Rows without a PDF stay in the table (greyed out) but are only shown when ticked
+function applyPidNoPdfFilter() {
+  pidMasterIndexTableBody.classList.toggle("hide-no-pdf", !pidShowNoPdf.checked);
+}
+pidShowNoPdf.addEventListener("change", () => {
+  applyPidNoPdfFilter();
+  const any = pidMasterIndexTableBody.querySelector(pidShowNoPdf.checked ? "tr" : "tr:not(.pid-no-pdf)");
+  pidMasterIndexTable.hidden = !any;
+  pidMasterIndexEmptyState.hidden = !!any;
+});
 
 function formatPidMasterIndexDate(value) {
   if (!value) return "";
@@ -16,6 +30,7 @@ async function refreshPidMasterIndex() {
   const jobNo = jobNumberSelect.value;
   const unitNo = unitNumberSelect.value;
 
+  pidNoPdfToggleWrap.hidden = true;
   if (!jobNo || !unitNo) {
     pidMasterIndexEmptyState.textContent = "Select a Job Number and Unit Number above to see registered P&IDs.";
     pidMasterIndexEmptyState.hidden = false;
@@ -41,10 +56,15 @@ async function refreshPidMasterIndex() {
       throw new Error((payload && payload.message) || `Server responded with ${response.status}`);
     }
     const rows = payload.data || [];
+    const withoutPdf = rows.filter((row) => !row.hasPdf).length;
+    // P&IDs with no PDF in ePULSE can't be highlighted — hidden unless "Show without PDF" is ticked
+    pidNoPdfCount.textContent = withoutPdf;
+    pidNoPdfToggleWrap.hidden = withoutPdf === 0;
 
     pidMasterIndexTableBody.innerHTML = "";
     rows.forEach((row) => {
       const tr = document.createElement("tr");
+      if (!row.hasPdf) tr.className = "pid-no-pdf";
       const status = row.hasPdf ? `${row.status} · Rev ${row.revLabel || "—"}` : `${row.status} · no PDF in ePULSE yet`;
       [row.pidName, row.zone, status, row.createdBy, formatPidMasterIndexDate(row.createdAt)].forEach(
         (value) => {
@@ -68,9 +88,13 @@ async function refreshPidMasterIndex() {
       pidMasterIndexTableBody.appendChild(tr);
     });
 
-    pidMasterIndexEmptyState.hidden = rows.length > 0;
-    pidMasterIndexEmptyState.textContent = `No P&IDs registered yet for ${jobNo} / ${unitNo}.`;
-    pidMasterIndexTable.hidden = rows.length === 0;
+    applyPidNoPdfFilter();
+    const shown = rows.length - (pidShowNoPdf.checked ? 0 : withoutPdf);
+    pidMasterIndexEmptyState.hidden = shown > 0;
+    pidMasterIndexEmptyState.textContent = rows.length
+      ? `None of the ${rows.length} P&IDs of ${jobNo} / ${unitNo} has a PDF in ePULSE yet — tick "Show without PDF" to list them.`
+      : `No P&IDs registered yet for ${jobNo} / ${unitNo}.`;
+    pidMasterIndexTable.hidden = shown === 0;
   } catch (error) {
     pidMasterIndexTableBody.innerHTML = "";
     pidMasterIndexTable.hidden = true;

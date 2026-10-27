@@ -203,6 +203,26 @@ body {
   color: var(--color-text);
 }
 
+/* P&IDs with no PDF in ePULSE: hidden unless "Show without PDF" is ticked, then greyed out */
+.pid-no-pdf-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.pid-no-pdf-toggle[hidden] {
+  display: none;
+}
+.hide-no-pdf tr.pid-no-pdf {
+  display: none;
+}
+tr.pid-no-pdf td {
+  color: #9aa0a6;
+  background: #f6f6f7;
+}
+
 #items-table td input {
   width: 100%;
   border: 1px solid var(--color-border);
