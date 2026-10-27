@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMS - Login</title>
+  <link rel="stylesheet" href="CSS/login.css">
+</head>
+<body>
+  <header class="login-top-bar">
+    <h1>SPECIAL ITEMS MANAGEMENT SYSTEM (SIMS)</h1>
+  </header>
+
+  <div class="login-page">
+    <div class="login-visual"></div>
+
+    <div class="login-panel">
+      <form class="login-card" id="login-form" novalidate>
+        <img src="picture/i.jpg" alt="EIL logo" class="login-logo">
+        <h2>Welcome to SIMS</h2>
+
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-input-wrap">
+            <input type="password" id="password" name="password" autocomplete="current-password" required>
+            <button type="button" class="password-toggle" id="password-toggle" aria-label="Show password" title="Show password"></button>
+          </div>
+        </div>
+
+        <p class="error-message" id="error-message" hidden></p>
+
+        <button type="submit" class="login-button">Log In</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="JS/auth.js"></script>
+  <script src="JS/login.js"></script>
+</body>
+</html>

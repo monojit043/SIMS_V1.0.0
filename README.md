@@ -1,6 +1,6 @@
 # SIMS
 
-A student/school information management system project.
+A Special Items Management System project.
 
 ## Project structure
 

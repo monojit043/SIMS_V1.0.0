@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMS - P&amp;ID Highlighting</title>
+  <link rel="stylesheet" href="CSS/layout.css">
+  <link rel="stylesheet" href="CSS/job-form.css">
+  <link rel="stylesheet" href="CSS/pid.css">
+</head>
+
+<body>
+  <div class="app-shell">
+    <nav class="sidebar">
+      <div class="sidebar-brand">SIMS</div>
+      <ul class="sidebar-nav">
+        <li><a href="JOB-FORM.HTML" class="sidebar-link">Special Items Collection</a></li>
+        <li><a href="UPLOAD-REPORT.HTML" class="sidebar-link">Upload ST6 Report</a></li>
+        <li><a href="UPLOAD-LICENSOR-DOCUMENT.HTML" class="sidebar-link">Upload Licensor Document</a></li>
+        <li><a href="ITEM-DETAILS.HTML" class="sidebar-link">Special Item Details</a></li>
+        <li><a href="PID-HIGHLIGHTING.HTML" class="sidebar-link active">P&amp;ID Highlighting</a></li>
+        <li><a href="3D-ADMIN-TASKS.HTML" class="sidebar-link">3D Admin Tasks</a></li>
+      </ul>
+    </nav>
+
+    <div class="app-content">
+      <header class="page-header">
+        <div>
+          <h1>SPECIAL ITEMS MANAGEMENT SYSTEM</h1>
+          <p class="subtitle">P&amp;ID Highlighting</p>
+        </div>
+        <div class="page-header-user">
+          <span class="page-header-user-name" id="page-header-user-name"></span>
+          <button type="button" class="logout-button" id="logout-button">Log Out</button>
+        </div>
+      </header>
+
+      <main class="form-wrapper">
+        <section class="form-section">
+          <h2 class="section-title">P&amp;ID Markup</h2>
+
+          <div class="pid-upload-row">
+            <input type="file" id="pid-upload" accept="image/*,application/pdf">
+            <button type="button" id="pid-save-pid-button" class="primary-button" hidden>Save P&amp;ID</button>
+            <span class="pid-save-status" id="pid-save-status" hidden></span>
+            <span class="pid-cloud-status" id="pid-cloud-status" hidden></span>
+          </div>
+
+          <p class="pid-hint" id="pid-loading-hint" hidden>Rendering PDF page…</p>
+
+          <div class="pid-toolbar" id="pid-toolbar" hidden>
+            <div class="pid-tool-dropdown" id="pid-select-dropdown">
+              <button type="button" class="pid-tool-button pid-tool-dropdown-toggle active" id="pid-select-submenu-toggle" title="Select / Pan tools">
+                <span class="pid-tool-icon">&#8598;</span> Select
+                <span class="pid-tool-dropdown-caret">&#9662;</span>
+              </button>
+
+              <div class="pid-tool-dropdown-flyout" id="pid-select-flyout" hidden>
+                <button type="button" class="pid-tool-dropdown-item active" id="pid-tool-select" data-tool="select" title="Click an existing item to select / copy its text">
+                  <span class="pid-tool-icon">&#8598;</span><span class="pid-tool-dropdown-item-label">Select</span>
+                </button>
+                <button type="button" class="pid-tool-dropdown-item" id="pid-tool-pan" data-tool="pan" title="Drag to move around the P&amp;ID">
+                  <span class="pid-tool-icon">&#9995;</span><span class="pid-tool-dropdown-item-label">Pan</span>
+                </button>
+              </div>
+            </div>
+
+            <button type="button" class="pid-tool-button" id="pid-tool-highlight" data-tool="highlight" title="Draw a highlight box and add a note">
+              <span class="pid-tool-icon">&#9635;</span> Highlight
+            </button>
+
+            <div class="pid-tool-dropdown" id="pid-shape-dropdown">
+              <button type="button" class="pid-tool-button pid-tool-dropdown-toggle" id="pid-shape-submenu-toggle" title="Shape tools">
+                <span class="pid-tool-icon">&#9633;</span> Shape
+                <span class="pid-tool-dropdown-caret">&#9662;</span>
+              </button>
+
+              <div class="pid-tool-dropdown-flyout" id="pid-shape-flyout" hidden>
+                <button type="button" class="pid-tool-dropdown-item" data-tool="draw" title="Freehand draw">
+                  <span class="pid-tool-icon">&#9998;</span><span class="pid-tool-dropdown-item-label">Draw</span>
+                </button>
+                <button type="button" class="pid-tool-dropdown-item" data-tool="line" title="Draw a straight line">
+                  <span class="pid-tool-icon">&#8212;</span><span class="pid-tool-dropdown-item-label">Line</span>
+                </button>
+                <button type="button" class="pid-tool-dropdown-item" data-tool="arrow" title="Draw an arrow">
+                  <span class="pid-tool-icon">&#8594;</span><span class="pid-tool-dropdown-item-label">Arrow</span>
+                </button>
+                <button type="button" class="pid-tool-dropdown-item" data-tool="shape" title="Draw a rectangle">
+                  <span class="pid-tool-icon">&#9633;</span><span class="pid-tool-dropdown-item-label">Rectangle</span>
+                </button>
+                <button type="button" class="pid-tool-dropdown-item" data-tool="ellipse" title="Draw a circle / ellipse">
+                  <span class="pid-tool-icon">&#9711;</span><span class="pid-tool-dropdown-item-label">Circle</span>
+                </button>
+                <button type="button" class="pid-tool-dropdown-item" data-tool="text" title="Click on the drawing to drop a text callout">
+                  <span class="pid-tool-icon">T</span><span class="pid-tool-dropdown-item-label">Text callout</span>
+                </button>
+                <button type="button" class="pid-tool-dropdown-item" data-tool="polygon" title="Click to place points, double-click to close">
+                  <span class="pid-tool-icon">&#11040;</span><span class="pid-tool-dropdown-item-label">Polygon</span>
+                </button>
+                <button type="button" class="pid-tool-dropdown-item" data-tool="cloud" title="Draw a cloud outline">
+                  <span class="pid-tool-icon">&#9729;</span><span class="pid-tool-dropdown-item-label">Cloud</span>
+                </button>
+                <button type="button" class="pid-tool-dropdown-item" data-tool="polyline" title="Click to place points, double-click to finish">
+                  <span class="pid-tool-icon">&#8618;</span><span class="pid-tool-dropdown-item-label">Connected lines</span>
+                </button>
+
+                <div class="pid-tool-dropdown-submenu">
+                  <button type="button" class="pid-tool-dropdown-item pid-tool-dropdown-item-parent" id="pid-stamps-toggle">
+                    <span class="pid-tool-icon">&#127991;</span><span class="pid-tool-dropdown-item-label">Stamps palette</span>
+                    <span class="pid-tool-dropdown-submenu-caret">&#9656;</span>
+                  </button>
+
+                  <div class="pid-stamp-panel" id="pid-stamp-panel" hidden>
+                    <button type="button" class="pid-stamp-preset" data-stamp-label="APPROVED" data-stamp-color="#16a34a">APPROVED</button>
+                    <button type="button" class="pid-stamp-preset" data-stamp-label="REVIEWED" data-stamp-color="#2563eb">REVIEWED</button>
+                    <button type="button" class="pid-stamp-preset" data-stamp-label="FOR REVIEW" data-stamp-color="#d97706">FOR REVIEW</button>
+                    <button type="button" class="pid-stamp-preset" data-stamp-label="DRAFT" data-stamp-color="#6b7280">DRAFT</button>
+                    <button type="button" class="pid-stamp-preset" data-stamp-label="VOID" data-stamp-color="#dc2626">VOID</button>
+                    <button type="button" class="pid-stamp-preset" data-stamp-label="URGENT" data-stamp-color="#db2777">URGENT</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="pid-tool-button" id="pid-tool-note" data-tool="note" title="Drop a comment note">
+              <span class="pid-tool-icon">&#128172;</span> Note
+            </button>
+
+            <button type="button" class="pid-tool-button" id="pid-tool-findsymbol" data-tool="findsymbol" title="Draw a box around one example symbol (e.g. a valve) to find similar-looking symbols elsewhere">
+              <span class="pid-tool-icon">&#127919;</span> Find Symbol
+            </button>
+
+            <div class="pid-tool-dropdown" id="pid-colorcode-dropdown">
+              <button type="button" class="pid-tool-button pid-tool-dropdown-toggle" id="pid-colorcode-toggle" title="Item Name color reference">
+                <span class="pid-tool-icon">&#127912;</span> Itemwise Color Code
+                <span class="pid-tool-dropdown-caret">&#9662;</span>
+              </button>
+
+              <div class="pid-tool-dropdown-flyout pid-colorcode-flyout" id="pid-colorcode-flyout" hidden>
+                <div class="pid-colorcode-row"><span class="pid-colorcode-swatch" style="background:#f59e0b"></span>Static Mixer</div>
+                <div class="pid-colorcode-row"><span class="pid-colorcode-swatch" style="background:#ef4444"></span>Injection Quill</div>
+                <div class="pid-colorcode-row"><span class="pid-colorcode-swatch" style="background:#f97316"></span>Spray Nozzle</div>
+                <div class="pid-colorcode-row"><span class="pid-colorcode-swatch" style="background:#eab308"></span>Process Trap</div>
+                <div class="pid-colorcode-row"><span class="pid-colorcode-swatch" style="background:#22c55e"></span>Permanent Strainer</div>
+                <div class="pid-colorcode-row"><span class="pid-colorcode-swatch" style="background:#14b8a6"></span>Temporary Strainer</div>
+                <div class="pid-colorcode-row"><span class="pid-colorcode-swatch" style="background:#06b6d4"></span>Process Hose</div>
+                <div class="pid-colorcode-row"><span class="pid-colorcode-swatch" style="background:#3b82f6"></span>Utility Hose</div>
+                <div class="pid-colorcode-row"><span class="pid-colorcode-swatch" style="background:#a855f7"></span>Steam Trap</div>
+                <div class="pid-colorcode-row"><span class="pid-colorcode-swatch" style="background:#ec4899"></span>CSTA</div>
+              </div>
+            </div>
+
+            <div class="pid-tag-style-row" id="pid-tag-style-row">
+              <select id="pid-tag-font-family" class="pid-style-select" title="Tag font">
+                <option value="Arial, Helvetica, sans-serif">Arial</option>
+                <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                <option value="Georgia, serif">Georgia</option>
+                <option value="'Courier New', Courier, monospace">Courier New</option>
+                <option value="Verdana, sans-serif">Verdana</option>
+                <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+              </select>
+              <select id="pid-tag-font-size" class="pid-style-select" title="Tag text size">
+                <option value="6">6</option>
+                <option value="8">8</option>
+                <option value="10" selected>10</option>
+                <option value="12">12</option>
+                <option value="14">14</option>
+                <option value="16">16</option>
+                <option value="18">18</option>
+                <option value="20">20</option>
+                <option value="24">24</option>
+                <option value="28">28</option>
+                <option value="32">32</option>
+              </select>
+              <button type="button" class="pid-style-toggle" id="pid-tag-style-bold" data-style="bold" title="Bold"><b>B</b></button>
+              <button type="button" class="pid-style-toggle" id="pid-tag-style-italic" data-style="italic" title="Italic"><i>I</i></button>
+              <button type="button" class="pid-style-toggle" id="pid-tag-style-underline" data-style="underline" title="Underline"><u>U</u></button>
+            </div>
+
+            <span class="pid-zoom-group">
+              <span class="pid-page-label">Zoom</span>
+              <button type="button" id="pid-zoom-out" class="pid-zoom-button" title="Zoom out" aria-label="Zoom out">&#8722;</button>
+              <span id="pid-zoom-level" class="pid-zoom-level">100%</span>
+              <button type="button" id="pid-zoom-in" class="pid-zoom-button" title="Zoom in" aria-label="Zoom in">&#43;</button>
+              <button type="button" id="pid-zoom-reset" class="pid-zoom-reset" title="Reset zoom to 100%">Reset</button>
+            </span>
+
+            <span class="pid-page-group" id="pid-page-group" hidden>
+              <span class="pid-page-label">Page</span>
+              <span class="pid-pager" title="Type a page number and press Enter to jump to it">
+                <input type="number" id="pid-page-number" min="1" value="1">
+                <span id="pid-page-count"></span>
+                <span class="pid-pager-steppers">
+                  <button type="button" id="pid-page-up" title="Previous page" aria-label="Previous page">&#9650;</button>
+                  <button type="button" id="pid-page-down" title="Next page" aria-label="Next page">&#9660;</button>
+                </span>
+              </span>
+            </span>
+
+            <span class="pid-search-group" id="pid-search-group">
+              <input type="search" id="pid-search-input" class="pid-search-input" placeholder="Search tag, text, note…" title="Search the P&amp;ID text and tag details">
+              <button type="button" id="pid-search-prev" class="pid-search-nav-button" title="Previous match" aria-label="Previous match" disabled>&#9650;</button>
+              <button type="button" id="pid-search-next" class="pid-search-nav-button" title="Next match" aria-label="Next match" disabled>&#9660;</button>
+              <span id="pid-search-count" class="pid-search-count"></span>
+              <button type="button" id="pid-search-clear" class="pid-search-clear-button" title="Clear search" aria-label="Clear search" hidden>&times;</button>
+              <button type="button" id="pid-ocr-index-all-button" class="pid-ocr-index-all-button" title="Run OCR on every page so text printed on the drawing becomes searchable" hidden>Index all pages</button>
+              <span id="pid-ocr-status" class="pid-ocr-status" hidden></span>
+            </span>
+
+            <div class="pid-color-row" id="pid-color-row" hidden>
+              <button type="button" class="pid-color-swatch active" data-color="#f59e0b" style="--swatch-color:#f59e0b" title="Amber"></button>
+              <button type="button" class="pid-color-swatch" data-color="#ef4444" style="--swatch-color:#ef4444" title="Red"></button>
+              <button type="button" class="pid-color-swatch" data-color="#f97316" style="--swatch-color:#f97316" title="Orange"></button>
+              <button type="button" class="pid-color-swatch" data-color="#eab308" style="--swatch-color:#eab308" title="Yellow"></button>
+              <button type="button" class="pid-color-swatch" data-color="#84cc16" style="--swatch-color:#84cc16" title="Lime"></button>
+              <button type="button" class="pid-color-swatch" data-color="#22c55e" style="--swatch-color:#22c55e" title="Green"></button>
+              <button type="button" class="pid-color-swatch" data-color="#10b981" style="--swatch-color:#10b981" title="Emerald"></button>
+              <button type="button" class="pid-color-swatch" data-color="#14b8a6" style="--swatch-color:#14b8a6" title="Teal"></button>
+              <button type="button" class="pid-color-swatch" data-color="#06b6d4" style="--swatch-color:#06b6d4" title="Cyan"></button>
+              <button type="button" class="pid-color-swatch" data-color="#3b82f6" style="--swatch-color:#3b82f6" title="Blue"></button>
+              <button type="button" class="pid-color-swatch" data-color="#6366f1" style="--swatch-color:#6366f1" title="Indigo"></button>
+              <button type="button" class="pid-color-swatch" data-color="#a855f7" style="--swatch-color:#a855f7" title="Purple"></button>
+              <button type="button" class="pid-color-swatch" data-color="#d946ef" style="--swatch-color:#d946ef" title="Fuchsia"></button>
+              <button type="button" class="pid-color-swatch" data-color="#ec4899" style="--swatch-color:#ec4899" title="Pink"></button>
+              <button type="button" class="pid-color-swatch" data-color="#f43f5e" style="--swatch-color:#f43f5e" title="Rose"></button>
+              <button type="button" class="pid-color-swatch" data-color="#78716c" style="--swatch-color:#78716c" title="Stone"></button>
+              <button type="button" class="pid-color-swatch" data-color="#1f2937" style="--swatch-color:#1f2937" title="Charcoal"></button>
+              <label class="pid-color-swatch pid-color-custom" title="Custom color">
+                <input type="color" id="pid-color-custom-input" value="#f59e0b">
+              </label>
+            </div>
+
+            <div class="pid-text-style-row" id="pid-text-style-row" hidden>
+              <select id="pid-font-family" class="pid-style-select" title="Font family">
+                <option value="Arial, Helvetica, sans-serif">Arial</option>
+                <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                <option value="Georgia, serif">Georgia</option>
+                <option value="'Courier New', Courier, monospace">Courier New</option>
+                <option value="Verdana, sans-serif">Verdana</option>
+                <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+              </select>
+              <select id="pid-font-size" class="pid-style-select" title="Font size">
+                <option value="6">6</option>
+                <option value="8">8</option>
+                <option value="10" selected>10</option>
+                <option value="12">12</option>
+                <option value="14">14</option>
+                <option value="16">16</option>
+                <option value="18">18</option>
+                <option value="20">20</option>
+                <option value="24">24</option>
+                <option value="28">28</option>
+                <option value="32">32</option>
+              </select>
+              <button type="button" class="pid-style-toggle" id="pid-style-bold" data-style="bold" title="Bold"><b>B</b></button>
+              <button type="button" class="pid-style-toggle" id="pid-style-italic" data-style="italic" title="Italic"><i>I</i></button>
+              <button type="button" class="pid-style-toggle" id="pid-style-underline" data-style="underline" title="Underline"><u>U</u></button>
+            </div>
+          </div>
+
+          <div class="pid-canvas-row">
+            <div class="pid-zoom-viewport" id="pid-zoom-viewport">
+              <div class="pid-canvas-wrapper" id="pid-canvas-wrapper" hidden>
+                <img id="pid-image" alt="Uploaded P&amp;ID">
+                <div id="pid-text-layer" class="pid-text-layer"></div>
+                <div id="pid-overlay" class="pid-overlay"></div>
+              </div>
+            </div>
+
+            <div class="pid-sidebar-stack">
+              <aside class="pid-items-panel" id="pid-items-section" hidden>
+                <h2 class="pid-items-panel-title">Special Items</h2>
+                <p class="pid-hint" id="pid-items-empty-hint">No tagged items yet.</p>
+                <div class="pid-items-table-wrap">
+                  <table class="pid-items-table" id="pid-items-table" hidden>
+                    <thead>
+                      <tr>
+                        <th>Snapshot</th>
+                        <th>Tag No.</th>
+                        <th id="pid-items-page-header">Page</th>
+                      </tr>
+                    </thead>
+                    <tbody id="pid-items-table-body"></tbody>
+                  </table>
+                </div>
+              </aside>
+
+              <aside class="pid-items-panel" id="pid-linenumbers-section" hidden>
+                <h2 class="pid-items-panel-title">Line Numbers Found</h2>
+                <p class="pid-hint" id="pid-linenumbers-empty-hint">
+                  None found yet — index this P&amp;ID for drawing-text search above to detect line numbers.
+                </p>
+                <div class="pid-items-table-wrap">
+                  <table class="pid-items-table" id="pid-linenumbers-table" hidden>
+                    <thead>
+                      <tr>
+                        <th>Line Number</th>
+                        <th id="pid-linenumbers-page-header">Page</th>
+                      </tr>
+                    </thead>
+                    <tbody id="pid-linenumbers-table-body"></tbody>
+                  </table>
+                </div>
+              </aside>
+
+              <aside class="pid-items-panel" id="pid-symbols-section" hidden>
+                <h2 class="pid-items-panel-title">Symbols Found</h2>
+                <p class="pid-hint" id="pid-symbols-empty-hint">
+                  Use the "Find Symbol" tool above: draw a box around one example (e.g. a valve), name it, and matches will appear here.
+                </p>
+                <button type="button" id="pid-symbol-search-all-button" class="pid-ocr-index-all-button" hidden>Search all pages</button>
+                <span id="pid-symbol-status" class="pid-ocr-status" hidden></span>
+                <div class="pid-items-table-wrap">
+                  <table class="pid-items-table" id="pid-symbols-table" hidden>
+                    <thead>
+                      <tr>
+                        <th>Snapshot</th>
+                        <th>Symbol</th>
+                        <th id="pid-symbols-page-header">Page</th>
+                      </tr>
+                    </thead>
+                    <tbody id="pid-symbols-table-body"></tbody>
+                  </table>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="pid-dialog" class="pid-dialog">
+    <form id="pid-dialog-form">
+      <h3 id="pid-dialog-title">Special Item Details</h3>
+
+      <div class="field">
+        <label>P&amp;ID</label>
+        <input type="text" id="pid-detail-pid-name" readonly>
+      </div>
+
+      <div class="pid-dialog-row">
+        <div class="field">
+          <label for="pid-detail-description">Item Name</label>
+          <input type="text" id="pid-detail-description" list="pid-item-name-options" placeholder="Select or type item name" autocomplete="off">
+          <datalist id="pid-item-name-options">
+            <option value="Static Mixer">
+            <option value="Injection Quill">
+            <option value="Spray Nozzle">
+            <option value="Process Trap">
+            <option value="Permanent Strainer">
+            <option value="Temporary Strainer">
+            <option value="Process Hose">
+            <option value="Utility Hose">
+            <option value="Steam Trap">
+            <option value="CSTA">
+          </datalist>
+        </div>
+        <div class="field">
+          <label for="pid-detail-line-number">Line Number <span id="pid-line-number-required-marker" class="required-marker" hidden>*</span></label>
+          <input type="text" id="pid-detail-line-number" list="pid-line-number-options" placeholder="Select or type line number" autocomplete="off">
+          <datalist id="pid-line-number-options">
+            <option value="P-101-12345">
+            <option value="P-111-54321">
+            <option value="P-102-98765">
+            <option value="P-128-11223">
+          </datalist>
+        </div>
+        <div class="field">
+          <label for="pid-note-title">Tag No. <span class="required-marker">*</span></label>
+          <input type="text" id="pid-note-title" placeholder="e.g. TAG-001" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <div class="pid-details-table">
+          <div class="pid-details-row">
+            <div class="pid-details-label">Size</div>
+            <input type="text" class="pid-details-value" id="pid-detail-size">
+          </div>
+          <div class="pid-details-row">
+            <div class="pid-details-label">Rating</div>
+            <input type="text" class="pid-details-value" id="pid-detail-rating">
+          </div>
+          <div class="pid-details-row">
+            <div class="pid-details-label">Piping Spec</div>
+            <input type="text" class="pid-details-value" id="pid-detail-piping-spec">
+          </div>
+          <div class="pid-details-row">
+            <div class="pid-details-label">Quantity</div>
+            <input type="text" class="pid-details-value" id="pid-detail-quantity">
+          </div>
+          <div class="pid-details-row">
+            <div class="pid-details-label">Special Note</div>
+            <input type="text" class="pid-details-value" id="pid-detail-special-note">
+          </div>
+          <div class="pid-details-row">
+            <div class="pid-details-label">Licensor Note</div>
+            <input type="text" class="pid-details-value" id="pid-detail-licensor-note">
+          </div>
+        </div>
+      </div>
+
+      <div class="pid-dialog-actions">
+        <button type="button" id="pid-delete-button" class="secondary-button" hidden>Delete</button>
+        <div class="pid-dialog-actions-right">
+          <button type="button" id="pid-cancel-button" class="secondary-button">Cancel</button>
+          <button type="submit" id="pid-save-note-button" class="primary-button">Save</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="pid-symbol-dialog" class="pid-dialog pid-symbol-dialog">
+    <form id="pid-symbol-dialog-form">
+      <h3>Name This Symbol</h3>
+      <div class="field">
+        <label for="pid-symbol-name-input">Symbol Name</label>
+        <input type="text" id="pid-symbol-name-input" placeholder="e.g. Valve, Strainer" required>
+      </div>
+      <p class="pid-hint">Searches the current page now; use "Search all pages" afterward for full-document coverage.</p>
+      <div class="pid-dialog-actions">
+        <div class="pid-dialog-actions-right">
+          <button type="button" id="pid-symbol-cancel-button" class="secondary-button">Cancel</button>
+          <button type="submit" id="pid-symbol-save-button" class="primary-button">Find Matches</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+  <script src="https://docs.opencv.org/4.9.0/opencv.js"></script>
+  <script src="JS/storage.js"></script>
+  <script src="JS/auth.js"></script>
+  <script src="JS/user-bar.js"></script>
+  <script src="JS/pid-lookup.js"></script>
+  <script src="JS/assignments.js"></script>
+  <script src="JS/pid.js"></script>
+</body>
+
+</html>

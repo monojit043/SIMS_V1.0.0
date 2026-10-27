@@ -9,3 +9,9 @@ venv/
 Thumbs.db
 *.log
 .claude/settings.local.json
+
+# Client drawings (never in git) and uploaded files
+FRONTEND/picture/*.pdf
+FRONTEND/picture/pid-page-*.png
+BACKEND/uploads/licensor/*
+.claude/

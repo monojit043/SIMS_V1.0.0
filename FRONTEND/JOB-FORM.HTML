@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMS - Job Entry</title>
+  <link rel="stylesheet" href="CSS/layout.css">
+  <link rel="stylesheet" href="CSS/job-form.css">
+</head>
+
+<body>
+  <div class="app-shell">
+    <nav class="sidebar">
+      <div class="sidebar-brand">SIMS</div>
+      <ul class="sidebar-nav">
+        <li><a href="JOB-FORM.HTML" class="sidebar-link active">Special Items Collection</a></li>
+        <li><a href="UPLOAD-REPORT.HTML" class="sidebar-link">Upload ST6 Report</a></li>
+        <li><a href="UPLOAD-LICENSOR-DOCUMENT.HTML" class="sidebar-link">Upload Licensor Document</a></li>
+        <li><a href="ITEM-DETAILS.HTML" class="sidebar-link">Special Item Details</a></li>
+        <li><a href="PID-HIGHLIGHTING.HTML" class="sidebar-link">P&amp;ID Highlighting</a></li>
+        <li><a href="3D-ADMIN-TASKS.HTML" class="sidebar-link">3D Admin Tasks</a></li>
+      </ul>
+    </nav>
+
+    <div class="app-content">
+      <header class="page-header">
+        <div>
+          <h1>SPECIAL ITEMS MANAGEMENT SYSTEM</h1>
+          <p class="subtitle">Job Engineer - Item Entry Form</p>
+        </div>
+        <div class="page-header-user">
+          <span class="page-header-user-name" id="page-header-user-name"></span>
+          <button type="button" class="logout-button" id="logout-button">Log Out</button>
+        </div>
+      </header>
+
+      <main class="form-wrapper">
+        <section class="form-section">
+          <h2 class="section-title">Job Details</h2>
+          <div class="section-grid cols-2">
+            <div class="field">
+              <label for="job-number">Job Number</label>
+              <select id="job-number" name="jobNumber" required>
+                <option value="" disabled selected>Select job number</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="unit-number">Unit Number</label>
+              <select id="unit-number" name="unitNumber" required>
+                <option value="" disabled selected>Select unit number</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <p class="error-message" id="form-error" hidden></p>
+
+        <section class="form-section" id="pid-master-index-section">
+          <h2 class="section-title">P&amp;IDs for this Job / Unit</h2>
+          <p class="empty-state" id="pid-master-index-empty-state">
+            Select a Job Number and Unit Number above to see registered P&amp;IDs.
+          </p>
+          <div class="table-scroll">
+            <table class="data-table" id="pid-master-index-table" hidden>
+              <thead>
+                <tr>
+                  <th>P&amp;ID Name</th>
+                  <th>Zone</th>
+                  <th>Status</th>
+                  <th>Created By</th>
+                  <th>Created At</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="pid-master-index-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+      <section class="form-section">
+        <div class="items-header">
+          <h2 class="section-title">All Items Added</h2>
+          <div class="report-actions">
+            <button type="button" id="download-pdf-button" class="secondary-button">Download PDF</button>
+            <button type="button" id="download-excel-button" class="secondary-button">Download Excel</button>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table id="all-items-table" class="data-table">
+            <thead>
+              <tr>
+                <th>Job Number</th>
+                <th>Unit Number</th>
+                <th>Line Number</th>
+                <th>TAG NO.</th>
+                <th>Item Name</th>
+                <th>Item Description</th>
+                <th>Quantity</th>
+                <th>Specialty Note</th>
+                <th>Licensor Requirement</th>
+                <th>P&amp;ID No.</th>
+                <th>Snapshot</th>
+                <th>P&amp;ID Page</th>
+              </tr>
+            </thead>
+            <tbody id="all-items-table-body"></tbody>
+          </table>
+        </div>
+        <p class="empty-state" id="all-items-empty-state">
+          No items added yet. Tag an item on a P&amp;ID (via "Open for Highlighting" above) and it will show up here.
+        </p>
+      </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="JS/storage.js"></script>
+  <script src="JS/auth.js"></script>
+  <script src="JS/user-bar.js"></script>
+  <script src="JS/pid-lookup.js"></script>
+  <script src="JS/assignments.js"></script>
+  <script src="JS/job-form.js"></script>
+</body>
+
+</html>

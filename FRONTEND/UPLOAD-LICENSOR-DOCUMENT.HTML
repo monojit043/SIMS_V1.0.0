@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMS - Upload Licensor Document</title>
+  <link rel="stylesheet" href="CSS/layout.css">
+  <link rel="stylesheet" href="CSS/job-form.css">
+  <link rel="stylesheet" href="CSS/upload-report.css">
+</head>
+
+<body>
+  <div class="app-shell">
+    <nav class="sidebar">
+      <div class="sidebar-brand">SIMS</div>
+      <ul class="sidebar-nav">
+        <li><a href="JOB-FORM.HTML" class="sidebar-link">Special Items Collection</a></li>
+        <li><a href="UPLOAD-REPORT.HTML" class="sidebar-link">Upload ST6 Report</a></li>
+        <li><a href="UPLOAD-LICENSOR-DOCUMENT.HTML" class="sidebar-link active">Upload Licensor Document</a></li>
+        <li><a href="ITEM-DETAILS.HTML" class="sidebar-link">Special Item Details</a></li>
+        <li><a href="PID-HIGHLIGHTING.HTML" class="sidebar-link">P&amp;ID Highlighting</a></li>
+        <li><a href="3D-ADMIN-TASKS.HTML" class="sidebar-link">3D Admin Tasks</a></li>
+      </ul>
+    </nav>
+
+    <div class="app-content">
+      <header class="page-header">
+        <div>
+          <h1>SPECIAL ITEMS MANAGEMENT SYSTEM</h1>
+          <p class="subtitle">Upload Licensor Document</p>
+        </div>
+        <div class="page-header-user">
+          <span class="page-header-user-name" id="page-header-user-name"></span>
+          <button type="button" class="logout-button" id="logout-button">Log Out</button>
+        </div>
+      </header>
+
+      <main class="form-wrapper">
+        <form id="upload-form" novalidate>
+
+          <section class="form-section">
+            <h2 class="section-title">Job Details</h2>
+            <div class="section-grid cols-2">
+              <div class="field">
+                <label for="job-number">Job Number</label>
+                <select id="job-number" name="jobNumber" required>
+                  <option value="" disabled selected>Select job number</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="unit-number">Unit Number</label>
+                <select id="unit-number" name="unitNumber" required>
+                  <option value="" disabled selected>Select unit number</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h2 class="section-title">Licensor Document</h2>
+            <div class="upload-dropzone" id="upload-dropzone">
+              <input type="file" id="licensor-file" name="licensorFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg" required hidden>
+              <label for="licensor-file" class="upload-label">
+                <span class="upload-title">Choose a file or drag it here</span>
+                <span class="upload-hint">Accepted formats: .pdf, .doc, .docx, .xls, .xlsx, .csv, .png, .jpg</span>
+              </label>
+              <p class="upload-filename" id="upload-filename" hidden></p>
+            </div>
+          </section>
+
+          <p class="error-message" id="form-error" hidden></p>
+          <p class="success-message" id="form-success" hidden></p>
+
+          <button type="submit" class="primary-button">Upload Document</button>
+        </form>
+
+        <section class="form-section" id="licensor-documents-section">
+          <h2 class="section-title">Uploaded Licensor Documents</h2>
+          <p class="empty-state" id="licensor-documents-empty-state">
+            Select a Job Number and Unit Number above to see uploaded documents.
+          </p>
+          <div class="table-scroll">
+            <table class="data-table" id="licensor-documents-table" hidden>
+              <thead>
+                <tr>
+                  <th>File Name</th>
+                  <th>Uploaded By</th>
+                  <th>Uploaded At</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="licensor-documents-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="JS/auth.js"></script>
+  <script src="JS/user-bar.js"></script>
+  <script src="JS/assignments.js"></script>
+  <script src="JS/upload-licensor-document.js"></script>
+</body>
+
+</html>

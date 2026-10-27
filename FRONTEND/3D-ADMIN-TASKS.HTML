@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMS - 3D Admin Tasks</title>
+  <link rel="stylesheet" href="CSS/layout.css">
+  <link rel="stylesheet" href="CSS/job-form.css">
+</head>
+
+<body>
+  <div class="app-shell">
+    <nav class="sidebar">
+      <div class="sidebar-brand">SIMS</div>
+      <ul class="sidebar-nav">
+        <li><a href="JOB-FORM.HTML" class="sidebar-link">Special Items Collection</a></li>
+        <li><a href="UPLOAD-REPORT.HTML" class="sidebar-link">Upload ST6 Report</a></li>
+        <li><a href="UPLOAD-LICENSOR-DOCUMENT.HTML" class="sidebar-link">Upload Licensor Document</a></li>
+        <li><a href="ITEM-DETAILS.HTML" class="sidebar-link">Special Item Details</a></li>
+        <li><a href="PID-HIGHLIGHTING.HTML" class="sidebar-link">P&amp;ID Highlighting</a></li>
+        <li><a href="3D-ADMIN-TASKS.HTML" class="sidebar-link active">3D Admin Tasks</a></li>
+      </ul>
+    </nav>
+
+    <div class="app-content">
+      <header class="page-header">
+        <div>
+          <h1>SPECIAL ITEMS MANAGEMENT SYSTEM</h1>
+          <p class="subtitle">3D Admin Tasks</p>
+        </div>
+        <div class="page-header-user">
+          <span class="page-header-user-name" id="page-header-user-name"></span>
+          <button type="button" class="logout-button" id="logout-button">Log Out</button>
+        </div>
+      </header>
+
+      <main class="form-wrapper">
+        <section class="form-section">
+          <div class="items-header">
+            <h2 class="section-title">Tasks</h2>
+            <div class="report-actions">
+              <button type="button" class="secondary-button" id="backfill-button" hidden>Backfill Missing Tasks</button>
+            </div>
+          </div>
+          <div class="section-grid cols-2" style="max-width: 260px;">
+            <div class="field">
+              <label for="status-filter">Status</label>
+              <select id="status-filter">
+                <option value="Pending" selected>Pending</option>
+                <option value="Done">Done</option>
+                <option value="">All</option>
+              </select>
+            </div>
+          </div>
+          <p class="error-message" id="tasks-error" hidden></p>
+          <p class="empty-state" id="tasks-empty-state">No pending tasks.</p>
+          <div class="table-scroll">
+            <table class="data-table" id="tasks-table" hidden>
+              <thead>
+                <tr>
+                  <th>Tag No.</th>
+                  <th>Item Name</th>
+                  <th>Job Number</th>
+                  <th>Unit Number</th>
+                  <th>Status</th>
+                  <th>Assigned To</th>
+                  <th>Raised At</th>
+                  <th>Completed By</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="tasks-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="form-section" id="admins-section" hidden>
+          <h2 class="section-title">Manage Admins</h2>
+          <p class="pid-hint">Admins can mark 3D admin tasks as done and manage other admins.</p>
+          <div class="section-grid cols-2" style="max-width: 420px;">
+            <div class="field">
+              <label for="new-admin-id">Employee ID</label>
+              <input type="text" id="new-admin-id" placeholder="e.g. A725">
+            </div>
+            <div class="field" style="align-self: end;">
+              <button type="button" class="secondary-button" id="add-admin-button">Add Admin</button>
+            </div>
+          </div>
+          <p class="error-message" id="admin-error" hidden></p>
+          <div class="table-scroll">
+            <table class="data-table" id="admins-table">
+              <thead>
+                <tr>
+                  <th>Employee ID</th>
+                  <th>Added By</th>
+                  <th>Added At</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="admins-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="JS/auth.js"></script>
+  <script src="JS/user-bar.js"></script>
+  <script src="JS/library-tasks.js"></script>
+</body>
+
+</html>

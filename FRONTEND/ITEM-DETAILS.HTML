@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMS - Special Item Details</title>
+  <link rel="stylesheet" href="CSS/layout.css">
+  <link rel="stylesheet" href="CSS/job-form.css">
+  <link rel="stylesheet" href="CSS/item-details.css">
+</head>
+
+<body>
+  <div class="app-shell">
+    <nav class="sidebar">
+      <div class="sidebar-brand">SIMS</div>
+      <ul class="sidebar-nav">
+        <li><a href="JOB-FORM.HTML" class="sidebar-link">Special Items Collection</a></li>
+        <li><a href="UPLOAD-REPORT.HTML" class="sidebar-link">Upload ST6 Report</a></li>
+        <li><a href="UPLOAD-LICENSOR-DOCUMENT.HTML" class="sidebar-link">Upload Licensor Document</a></li>
+        <li><a href="ITEM-DETAILS.HTML" class="sidebar-link active">Special Item Details</a></li>
+        <li><a href="PID-HIGHLIGHTING.HTML" class="sidebar-link">P&amp;ID Highlighting</a></li>
+        <li><a href="3D-ADMIN-TASKS.HTML" class="sidebar-link">3D Admin Tasks</a></li>
+      </ul>
+    </nav>
+
+    <div class="app-content">
+      <header class="page-header">
+        <div>
+          <h1>SPECIAL ITEMS MANAGEMENT SYSTEM</h1>
+          <p class="subtitle">Special Item Details</p>
+        </div>
+        <div class="page-header-user">
+          <span class="page-header-user-name" id="page-header-user-name"></span>
+          <button type="button" class="logout-button" id="logout-button">Log Out</button>
+        </div>
+      </header>
+
+      <main class="form-wrapper">
+        <section class="form-section">
+          <h2 class="section-title">Filters</h2>
+          <div class="section-grid cols-4">
+            <div class="field">
+              <label for="filter-job-number">Job Number</label>
+              <select id="filter-job-number">
+                <option value="">All job numbers</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="filter-unit-number">Unit Number</label>
+              <select id="filter-unit-number">
+                <option value="">All unit numbers</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="filter-line-number">Line Number</label>
+              <select id="filter-line-number">
+                <option value="">All line numbers</option>
+                <option value="P-101-12345">P-101-12345</option>
+                <option value="P-111-54321">P-111-54321</option>
+                <option value="P-102-98765">P-102-98765</option>
+                <option value="P-128-11223">P-128-11223</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="filter-item-name">Item Name</label>
+              <input type="text" id="filter-item-name" placeholder="Search item name">
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="items-header">
+            <h2 class="section-title">Records</h2>
+            <div class="report-actions">
+              <button type="button" id="download-pdf-button" class="secondary-button">Download PDF</button>
+              <button type="button" id="download-excel-button" class="secondary-button">Download Excel</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table id="details-table" class="data-table">
+              <thead>
+                <tr>
+                  <th>Item Name</th>
+                  <th>Item Code</th>
+                  <th>Line Size</th>
+                  <th>Piping Spec</th>
+                  <th>Item Description</th>
+                  <th>Quantity</th>
+                  <th>MR No.</th>
+                  <th>Datasheet</th>
+                  <th>Vendor Drawing</th>
+                  <th>Modeling Status</th>
+                  <th>Snapshot</th>
+                  <th>Page</th>
+                </tr>
+              </thead>
+              <tbody id="details-table-body"></tbody>
+            </table>
+          </div>
+          <p class="empty-state" id="empty-state">
+            No records yet. Submit an entry from Special Items Collection and it will appear here.
+          </p>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="JS/storage.js"></script>
+  <script src="JS/auth.js"></script>
+  <script src="JS/user-bar.js"></script>
+  <script src="JS/pid-lookup.js"></script>
+  <script src="JS/assignments.js"></script>
+  <script src="JS/item-details.js"></script>
+</body>
+
+</html>
