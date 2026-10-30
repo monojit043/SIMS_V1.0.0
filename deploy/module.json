@@ -1,0 +1,17 @@
+{
+  "name": "SIMS",
+  "title": "SIMS v1.0.0",
+  "installDir": "E:\\SIMS",
+  "backupRoot": "E:\\backups\\SIMS",
+  "port": 5000,
+  "appDir": "BACKEND",
+  "startScript": "server.js",
+  "keep": ["BACKEND/.env", "BACKEND/uploads"],
+  "emptyDirs": ["BACKEND/uploads/pid", "BACKEND/uploads/reports", "BACKEND/uploads/licensor"],
+  "dbEnv": { "host": "PGHOST", "port": "PGPORT", "name": "PGDATABASE", "user": "PGUSER", "password": "PGPASSWORD" },
+  "required": ["PGPASSWORD", "EPULSE_DB_NAME", "EPULSE_DB_PASSWORD", "EPULSE_UPLOADS_ROOT", "IPMCS_DB_NAME", "IPMCS_DB_PASSWORD", "SSO_SECRET"],
+  "generate": ["JWT_SECRET"],
+  "migrate": [{ "script": "utils/seed.js", "env": { "DB_SYNC": "alter" } }],
+  "seed": [],
+  "releaseExtras": []
+}

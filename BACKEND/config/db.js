@@ -22,8 +22,10 @@ async function connectDB() {
   console.log(`PostgreSQL connected: ${sequelize.config.host}:${sequelize.config.port}/${sequelize.config.database}`);
 
   // Creates tables that don't exist yet and adds missing columns; does not drop data.
-  // For production use, replace with proper sequelize-cli migrations.
-  await sequelize.sync({ alter: true });
+  // DB_SYNC=create (production .env): only creates missing tables — column changes are made by
+  // the update (deploy/production/apply_update.bat runs utils/seed.js with DB_SYNC=alter after
+  // backing the database up).
+  await sequelize.sync(process.env.DB_SYNC === "create" ? {} : { alter: true });
 }
 
 module.exports = { sequelize, connectDB };
