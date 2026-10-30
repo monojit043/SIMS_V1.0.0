@@ -8,7 +8,9 @@ const PidDocument = require("./PidDocument");
 const SpecialItemTag = sequelize.define(
   "SpecialItemTag",
   {
-    highlightId: { type: DataTypes.STRING, allowNull: false, unique: true },
+    // unique via the named index below — a column-level unique: true gets a new duplicate
+    // index on every sync({ alter: true }) (Sequelize), the name keeps it to one
+    highlightId: { type: DataTypes.STRING, allowNull: false },
     pidDocumentId: {
       type: DataTypes.INTEGER,
       references: { model: PidDocument, key: "id" },
@@ -45,7 +47,9 @@ const SpecialItemTag = sequelize.define(
   },
   {
     tableName: "special_item_tags",
-    indexes: [{ fields: ["tagNumber"] }, { fields: ["jobNumber", "unitNumber"] }, { fields: ["pidDocumentId"] }],
+    indexes: [
+      { name: "special_item_tags_highlightId_key", unique: true, fields: ["highlightId"] },
+      { fields: ["tagNumber"] }, { fields: ["jobNumber", "unitNumber"] }, { fields: ["pidDocumentId"] }],
   }
 );
 
